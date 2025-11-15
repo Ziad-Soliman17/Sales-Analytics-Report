@@ -21,6 +21,7 @@ The following SQL queries were used to extract and prepare data from the Adventu
 - Sales Fact Table 
   
 ```sql
+--combine Internet Sales and Reseller Sales into a single Fact table
 SELECT
 	SalesOrderNumber,
 	OrderDateKey AS DateKey,
@@ -31,7 +32,7 @@ SELECT
 	ProductStandardCost,
 	SalesAmount,
 	TaxAmt,
-	CAST(OrderDate AS DATE) AS OrderDate
+	CAST(OrderDate AS DATE) AS OrderDate --convert datetime to date
 FROM FactInternetSales
 WHERE OrderDate IS NOT NULL 
 	AND Year(OrderDate) Between 2022 AND 2024
@@ -69,6 +70,7 @@ WHERE YEAR(FullDateAlternateKey) BETWEEN 2022 AND 2024;
 - Channel Dimension Table
   
 ```sql
+-- Create bridge table for Channel Types
 SELECT
 	ResellerKey AS ChannelKey,
 	'Retail' AS Channel_Type
@@ -85,10 +87,10 @@ from DimCustomer
 ```sql
 Select
 	CustomerKey,
-	CONCAT (FirstName,' ',LastName) AS CustomerName,
+	CONCAT(FirstName,' ',LastName) AS CustomerName,
 	g.EnglishCountryRegionName AS Country  
 From DimCustomer c
-LEFT JOIN DimGeography g ON c.GeographyKey = g.GeographyKey ;
+LEFT JOIN DimGeography g ON c.GeographyKey = g.GeographyKey ; --Join to get country information
 ```
 
 - Reseller Dimension Table 
@@ -99,7 +101,7 @@ Select
 	r.ResellerName,
 	g.EnglishCountryRegionName AS Country
 From DimReseller r
-LEFT JOIN DimGeography g ON r.GeographyKey = g.GeographyKey;
+LEFT JOIN DimGeography g ON r.GeographyKey = g.GeographyKey; --join to get country information
 ```
 
 - Product Dimension Table
@@ -108,12 +110,12 @@ LEFT JOIN DimGeography g ON r.GeographyKey = g.GeographyKey;
 SELECT
 	p.ProductKey,
 	p.EnglishProductName AS ProductName,
-	COALESCE(s.EnglishProductSubcategoryName, 'Others') AS Subcategory,
-	COALESCE(c.EnglishProductCategoryName, 'Others') AS Catgeory
+	COALESCE(s.EnglishProductSubcategoryName, 'Others') AS Subcategory, --handle nulls in subcategory
+	COALESCE(c.EnglishProductCategoryName, 'Others') AS Catgeory --handle nulls in category
 FROM DimProduct p
 LEFT JOIN DimProductSubcategory s ON p.ProductSubcategoryKey = s.ProductSubcategoryKey
 LEFT JOIN DimProductCategory c ON s.ProductCategoryKey = c.ProductCategoryKey 
-WHERE FinishedGoodsFlag = 1;
+WHERE FinishedGoodsFlag = 1; --filter only finished goods
 ```
 
 - Dimension Sales Territory Table
